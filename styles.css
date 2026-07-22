@@ -367,10 +367,6 @@ h3 {
     padding-bottom: clamp(24px, 4vh, 54px);
   }
 
-  .home-hero h1 {
-    font-size: clamp(46px, 5vw, 76px);
-  }
-
   .home-hero .hero-actions {
     margin-top: 24px;
   }
