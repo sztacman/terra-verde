@@ -9,6 +9,7 @@ const pages = [
     md: "content/domov.md",
     image: "assets/images/hero-garden.webp",
     imageAlt: "Luxusná moderná záhrada pri rodinnom dome",
+    sectionImages: ["assets/images/projekcia-design.webp", "assets/images/zelene-steny.webp"],
   },
   {
     file: "projekcia.html",
@@ -17,6 +18,7 @@ const pages = [
     md: "content/projekcia.md",
     image: "assets/images/projekcia-design.webp",
     imageAlt: "Návrh záhrady s vizualizáciou a materiálmi",
+    sectionImages: ["assets/images/projekcia-design.webp", "assets/images/hero-garden.webp"],
   },
   {
     file: "realizacia-a-udrzba.html",
@@ -25,6 +27,7 @@ const pages = [
     md: "content/realizacia-a-udrzba.md",
     image: "assets/images/realizacia.webp",
     imageAlt: "Realizácia záhrady a pokládka trávnika",
+    sectionImages: ["assets/images/realizacia.webp", "assets/images/hero-garden.webp"],
   },
   {
     file: "interierova-zelen.html",
@@ -33,6 +36,7 @@ const pages = [
     md: "content/zelene-steny-a-interierova-zelen.md",
     image: "assets/images/zelene-steny.webp",
     imageAlt: "Luxusná interiérová zelená stena",
+    sectionImages: ["assets/images/zelene-steny.webp", "assets/images/kvetinace.webp"],
   },
   {
     file: "velkoformatove-kvetinace.html",
@@ -41,6 +45,7 @@ const pages = [
     md: "content/velkoformatove-kvetinace.md",
     image: "assets/images/kvetinace.webp",
     imageAlt: "Prémiové veľkoformátové kvetináče",
+    sectionImages: ["assets/images/kvetinace.webp", "assets/images/zelene-steny.webp"],
   },
   {
     file: "referencie.html",
@@ -49,6 +54,7 @@ const pages = [
     md: "content/referencie.md",
     image: "assets/images/hero-garden.webp",
     imageAlt: "Moderná súkromná záhrada",
+    sectionImages: ["assets/images/hero-garden.webp", "assets/images/kvetinace.webp"],
   },
   {
     file: "kontakt.html",
@@ -57,6 +63,7 @@ const pages = [
     md: "content/kontakt.md",
     image: "assets/images/hero-garden.webp",
     imageAlt: "Detail prémiovej záhrady",
+    sectionImages: ["assets/images/hero-garden.webp"],
   },
 ];
 
@@ -155,6 +162,8 @@ function removeInternalBlocks(blocks) {
     "Recommended Catalog Structure",
     "Recommended Project Card Content",
     "Placeholder Product Categories",
+    "Placeholder Reference Projects",
+    "Content Direction",
     "Contact Form",
     "Contact Details",
   ]);
@@ -242,7 +251,174 @@ function blocksToHtml(blocks, page) {
     .replace("</section>", "")
     .concat("</section>");
 
-  return { heroTitle, intro, body };
+  const contentBlocks = rest.filter((block) => !(block.type === "p" && labelParagraphs.has(block.text)));
+
+  return { heroTitle, intro, body, sections: sectionsFromBlocks(contentBlocks, page) };
+}
+
+function displaySectionTitle(text, page) {
+  if (text === "Recommended Intro Copy") {
+    return page.slug === "referencie" ? "Referencie Studio Terra Verde" : "Dizajnové riešenia na mieru";
+  }
+
+  if (text === "Main CTA") return "Úvodná konzultácia";
+
+  if (text === "CTA Copy") return "Dohodnime si stretnutie";
+
+  return text;
+}
+
+function sectionsFromBlocks(blocks, page) {
+  const sections = [];
+  let current = null;
+
+  for (const block of blocks) {
+    if (block.type === "h1") continue;
+
+    if (block.type === "h2") {
+      current = { title: displaySectionTitle(block.text, page), blocks: [] };
+      sections.push(current);
+      continue;
+    }
+
+    if (!current) {
+      current = { title: page.title, blocks: [] };
+      sections.push(current);
+    }
+
+    current.blocks.push(block);
+  }
+
+  return sections.filter((section) => section.blocks.length > 0);
+}
+
+function renderBlocks(blocks) {
+  return blocks
+    .filter((block) => {
+      if (block.type !== "p") return true;
+      return ![
+        "Product card fields:",
+        "Recommended filters:",
+        "Typ projektu:",
+        "Short description:",
+        "Image placeholder:",
+      ].includes(block.text);
+    })
+    .map((block) => {
+      if (block.type === "h3") return `<h3>${inline(block.text)}</h3>`;
+      if (block.type === "p") return `<p>${inline(block.text)}</p>`;
+      if (block.type === "ul") return `<ul class="check-list">${block.items.map((item) => `<li>${inline(item)}</li>`).join("")}</ul>`;
+      return "";
+    })
+    .join("\n");
+}
+
+function renderEditorialSections(page, sections) {
+  if (page.slug === "domov") return "";
+
+  const visibleSections = sections.filter((section) => section.title !== "Kontakt");
+  if (!visibleSections.length) return "";
+
+  return `<div class="editorial-flow">
+    ${visibleSections
+      .map((section, index) => {
+        const image = page.sectionImages[index % page.sectionImages.length] || page.image;
+        const reverse = index % 2 ? " reverse" : "";
+        return `<section class="layout-split${reverse}">
+          <div class="layout-media">
+            <img src="${image}" alt="${page.imageAlt}">
+          </div>
+          <div class="layout-copy">
+            <p class="eyebrow">${page.title}</p>
+            <h2>${inline(section.title)}</h2>
+            ${renderBlocks(section.blocks)}
+          </div>
+        </section>`;
+      })
+      .join("")}
+  </div>`;
+}
+
+function processSection() {
+  const steps = [
+    ["01", "Konzultácia", "Spoločne preberieme vaše predstavy, potreby a možnosti priestoru."],
+    ["02", "Návrh riešenia", "Vytvoríme koncept, ktorý rešpektuje charakter miesta aj spôsob používania."],
+    ["03", "Technické podklady", "Pripravíme dokumentáciu, výkresy a podklady pre presnú realizáciu."],
+    ["04", "Vizualizácie", "Priestor ukážeme v zrozumiteľnej podobe ešte pred realizáciou."],
+    ["05", "Realizácia", "Zabezpečíme realizáciu, odovzdanie a podľa potreby následnú starostlivosť."],
+  ];
+
+  return `<section class="process-section">
+    <p class="eyebrow">Náš proces</p>
+    <h2>Ako prebieha spolupráca</h2>
+    <div class="process-steps">
+      ${steps
+        .map(
+          ([number, title, text]) => `<article>
+            <span>${number}</span>
+            <h3>${title}</h3>
+            <p>${text}</p>
+          </article>`
+        )
+        .join("")}
+    </div>
+  </section>`;
+}
+
+function cardGrid(page) {
+  const cardsBySlug = {
+    projekcia: [
+      ["Situácia záhrady", "Celkové riešenie dispozície a charakteru priestoru."],
+      ["Výsadbové plány", "Detailný návrh výsadieb podľa podmienok miesta."],
+      ["Technické detaily", "Konštrukčné riešenia a technické špecifikácie."],
+      ["Materiálové riešenia", "Výber materiálov a prvkov s dôrazom na kvalitu."],
+      ["3D vizualizácie", "Fotorealistické zobrazenie budúcej záhrady."],
+      ["Realizačná dokumentácia", "Kompletné dokumenty pre bezchybnú realizáciu."],
+    ],
+    "realizacia-a-udrzba": [
+      ["Terénne úpravy", "Modelácia terénu a príprava pozemkov."],
+      ["Výsadba zelene", "Stromy, kry, trvalky a okrasné rastliny."],
+      ["Trávniky", "Výsev, kobercové trávniky a následná starostlivosť."],
+      ["Závlahy", "Automatické zavlažovanie, servis a nastavenie."],
+      ["Spevnené plochy", "Chodníky, terasy, schody a oporné prvky."],
+      ["Údržba", "Pravidelná starostlivosť a revitalizácia zelene."],
+    ],
+    "interierova-zelen": [
+      ["Zelené steny", "Vertikálne záhrady pre interiér aj exteriér."],
+      ["Samozavlažovanie", "Automatická regulácia vlhkosti pre vitalitu rastlín."],
+      ["Výber rastlín", "Druhy vhodné pre svetelné a prevádzkové podmienky."],
+      ["Dizajnové nádoby", "Solitéry a nádoby zladené s architektúrou priestoru."],
+      ["Komerčné priestory", "Riešenia pre kancelárie, hotely a obchodné priestory."],
+      ["Servis", "Pravidelná odborná starostlivosť o interiérovú zeleň."],
+    ],
+    "velkoformatove-kvetinace": [
+      ["Materiál", "Výber povrchov, štruktúr a odolných prevedení."],
+      ["Farba", "Farebné riešenia podľa architektúry a priestoru."],
+      ["Veľkosť", "Nádoby pre terasy, vstupy, interiéry aj solitéry."],
+      ["Použitie", "Interiér, exteriér, terasa a komerčné priestory."],
+      ["Osadenie", "Odporúčanie rastlín a kompozície pre konkrétny priestor."],
+      ["Dopyt", "Produkt vieme pripraviť ako katalógový alebo nacenený výber."],
+    ],
+  };
+
+  const cards = cardsBySlug[page.slug];
+  if (!cards) return "";
+
+  return `<section class="solution-section">
+    <p class="eyebrow">Čo obsahuje riešenie</p>
+    <h2>Komplexné riešenie na mieru</h2>
+    <div class="solution-grid">
+      ${cards
+        .map(
+          ([title, text]) => `<article>
+            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 40V16M24 16c-8 0-13-4-15-10 8 0 13 4 15 10Zm0 0c8 0 13-4 15-10-8 0-13 4-15 10Zm0 10c-7 0-12-3-15-8 7-1 12 2 15 8Zm0 0c7 0 12-3 15-8-7-1-12 2-15 8Z"/></svg>
+            <h3>${title}</h3>
+            <p>${text}</p>
+          </article>`
+        )
+        .join("")}
+    </div>
+  </section>`;
 }
 
 function labeledText(blocks, label) {
@@ -386,9 +562,11 @@ function renderPage(page) {
 
       ${page.slug === "domov" ? servicesSection() : ""}
 
-      <section class="page-content">
-        ${content.body}
-      </section>
+      ${renderEditorialSections(page, content.sections)}
+
+      ${["domov", "projekcia", "realizacia-a-udrzba", "interierova-zelen", "velkoformatove-kvetinace"].includes(page.slug) ? processSection() : ""}
+
+      ${cardGrid(page)}
 
       ${extra}
 
