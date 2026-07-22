@@ -6,7 +6,7 @@
   --bronze: #9a7b4f;
   --soft: #f7f3ec;
   --line: rgba(154, 123, 79, 0.3);
-  --serif: "Cormorant Garamond", Georgia, serif;
+  --display: "Space Grotesk", "Manrope", Arial, sans-serif;
   --sans: "Manrope", Arial, sans-serif;
 }
 
@@ -66,10 +66,10 @@ a {
 .brand span {
   display: grid;
   color: var(--white);
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 27px;
   line-height: 0.95;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
@@ -222,15 +222,16 @@ h1,
 h2,
 h3 {
   margin: 0;
-  font-family: var(--serif);
+  font-family: var(--display);
   font-weight: 600;
   line-height: 1.05;
+  letter-spacing: -0.01em;
 }
 
 h1 {
   max-width: 650px;
   color: var(--green);
-  font-size: clamp(52px, 6.2vw, 94px);
+  font-size: clamp(50px, 5.8vw, 88px);
 }
 
 h2 {
@@ -352,6 +353,60 @@ h3 {
 
 .services a::after {
   content: " →";
+}
+
+@media (min-width: 1101px) {
+  .home-hero {
+    height: calc(100vh - 94px - 196px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .home-hero .page-hero-copy {
+    padding-top: clamp(24px, 4vh, 54px);
+    padding-bottom: clamp(24px, 4vh, 54px);
+  }
+
+  .home-hero h1 {
+    font-size: clamp(46px, 5vw, 76px);
+  }
+
+  .home-hero .hero-actions {
+    margin-top: 24px;
+  }
+
+  .home-hero .page-hero-image {
+    min-height: 0;
+  }
+
+  .home-hero + .services-pages {
+    height: 196px;
+    min-height: 0;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .home-hero + .services-pages article {
+    min-height: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .home-hero + .services-pages svg {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 10px;
+  }
+
+  .home-hero + .services-pages h3 {
+    font-size: 12px;
+  }
+
+  .home-hero + .services-pages p {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
 }
 
 .cta-band {
